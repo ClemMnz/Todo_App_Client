@@ -45,7 +45,7 @@ const CreatePerson = (props) => {
     dispatch(createPerson({ formData, token }))
       .then(() => {
         setSubmitted(true);
-        navigate("/all");
+        navigate("/list");
       })
       .catch((e) => {
         setSubmitted(false);

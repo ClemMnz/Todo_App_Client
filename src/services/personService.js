@@ -1,4 +1,4 @@
-import axios from "../utils/api-request";
+import axios from "../utils/apiRequest";
 
 const headers = (token) => ({
   headers: {

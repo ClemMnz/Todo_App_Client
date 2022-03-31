@@ -20,7 +20,6 @@ A la racine du répertoire Todo_App_client, il faut créer un fichier '.env' ave
 - REACT_APP_AUTH0_CLIENT_ID=
 - REACT_APP_API_URL=http://localhost:PORT/api/
 - REACT_APP_AUTH0_AUDIENCE=
-- REACT_APP_CLIENT_URL=http://localhost:3000/all
 
 
 Il faut avoir MongoDB sur sa machine, ensuite pour l'exécuter, entrez la commande suivante dans un terminal: 

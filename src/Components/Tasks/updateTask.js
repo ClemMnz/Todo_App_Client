@@ -1,29 +1,30 @@
-import React, { useState } from "react";
+import React from "react";
+import { useSelector } from "react-redux";
 import {
   Typography,
   Box,
-  AlertTitle,
-  Alert,
   MenuItem,
-  Button,
 } from "@mui/material";
-import { Close, Edit } from "@mui/icons-material";
 import {
   ValidatorForm,
   TextValidator,
   SelectValidator,
 } from "react-material-ui-form-validator";
-import { style } from "./createTask";
 
-const UpdateTask = ({ setTask, task, onHide }) => {
-  const [message, setMessage] = useState("");
- 
+const UpdateTask = ({ setTask, task }) => {
+  const options = ["En cours", "Terminée"];
+  const persons = useSelector((state) => state.persons);
+
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setTask({ ...task, [name]: value });
   };
   const handleSelectChange = (event) => {
     setTask({ ...task, status: event.target.value });
+  };
+
+  const handleSelectResponsibleChange = (event) => {
+    setTask({ ...task, responsible: event.target.value });
   };
 
   return (
@@ -36,11 +37,10 @@ const UpdateTask = ({ setTask, task, onHide }) => {
       >
         Editer la tâche
       </Typography>
-      <Box sx={{ padding: "1rem"}}>
-        <ValidatorForm id="transition-modal-description" stackable="true">
-             <div>
+      <Box sx={{ padding: "1rem" }}>
+        <ValidatorForm id="transition-modal-description">
+          <div>
             <TextValidator
-              fluid
               margin="dense"
               label="Titre"
               name="title"
@@ -61,7 +61,6 @@ const UpdateTask = ({ setTask, task, onHide }) => {
               required
             />
             <TextValidator
-              fluid
               margin="dense"
               label="Description"
               name="description"
@@ -96,10 +95,32 @@ const UpdateTask = ({ setTask, task, onHide }) => {
               value={task.status}
               onChange={handleSelectChange}
             >
-              <MenuItem selected value="En cours">
-                En cours
-              </MenuItem>
-              <MenuItem value="Terminée">Terminée</MenuItem>
+              {options &&
+                options.map((option) => (
+                  <MenuItem
+                    key={task.status}
+                    value={option}
+                  >{`${option}`}</MenuItem>
+                ))}
+            </SelectValidator>
+            <SelectValidator
+              margin="dense"
+              type="text"
+              name="responsible"
+              aria-expanded="false"
+              label="Responsable"
+              fullWidth
+              value={task.responsible}
+              onChange={handleSelectResponsibleChange}
+            >
+              {persons &&
+                persons.map((person) => (
+                  <MenuItem
+                    key={task.responsible}
+                    selected
+                    value={person}
+                  >{`${person.firstname} ${person.lastname}`}</MenuItem>
+                ))}
             </SelectValidator>
           </div>
         </ValidatorForm>

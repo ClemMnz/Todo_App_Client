@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { ReactComponent as ReactIcon } from "../../Images/logos/reactjs.svg";
 import { ReactComponent as ReduxIcon } from "../../Images/logos/redux.svg";
 import { ReactComponent as ExpressIcon } from "../../Images/logos/express.svg";
@@ -10,6 +10,7 @@ import ArrowCircleDownIcon from "@mui/icons-material/ArrowCircleDown";
 import SignUpButton from "../Buttons/signupButton";
 import { Box, Stack } from "@mui/material";
 import { useAuth0 } from "@auth0/auth0-react";
+import { useSelector } from "react-redux";
 
 import Typed from "react-typed";
 
@@ -23,47 +24,49 @@ const textLines = [
 ];
 
 const Home = () => {
+  const User = useSelector((state) => state.user);
   const { isAuthenticated } = useAuth0();
   const anL = "animate__animated animate__fadeInLeft";
   const anR = "animate__animated animate__fadeInRight";
   const animArrow =
-    "animate__animated  animate__slideInDown animate__slow animate__delay-4s animate__infinite";
+    "animate__animated  animate__slideInDown animate__fadeInRight animate__slow animate__delay-4s animate__infinite";
   const animButton = "animate__animated animate__fadeInLeft animate__delay-4s";
 
   return (
     <>
-      <Box m={5}>
+      <Box direction={{ xs: "column", sm: "row" }} m={{xs:2,sm:2, md:5}}>
         <Box
-          height={"8rem"}
-          margin={{ sm: "3rem 5rem 2rem 5rem", md: "6rem 18rem 9rem 18rem" }}
+          height={{xs:'2rem',sm:'8rem',md:"7rem"}}
+          margin={{
+            xs: "5rem 2rem 15rem 2rem",
+            sm: "5rem 8rem 10rem 8rem",
+            md: "6rem 18rem 9rem 18rem",
+          }}
           textAlign={"center"}
-          fontSize={24}
-          fontFamily="Souvenir , Roboto Mono"
+          fontSize={{xs:15,md:22}}
+          fontFamily="Monospace , Roboto Mono"
         >
           <Typed strings={textLines} typeSpeed={45} />
         </Box>
         {!isAuthenticated && (
-          <Box   mb={{xs:"15rem",md: "7rem"}}>
+          <Box m={{ xs: "6rem", sm: "8rem", md: "2rem" }}>
             <Box
-             mt={{xs:"15rem",md: "5rem"}}
-           
+            className={anR} 
               style={{
-                margin:'1.3rem',
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
               }}
             >
-              <ArrowCircleDownIcon className={animArrow} fontSize={"large"} />
+              <ArrowCircleDownIcon  className={animArrow} fontSize={"large"} />
             </Box>
 
             <Box
               className={animButton}
               style={{
-               
                 display: "flex",
                 flexDirection: "row",
-                justifyContent: "center",
+                justifyContent: "center"
               }}
             >
               <SignUpButton />
@@ -73,10 +76,9 @@ const Home = () => {
         <Stack
           spacing={2}
           direction={{ xs: "column", sm: "row" }}
+          alignItems={"center"}
           justifyContent={"center"}
-        
-          mt={{xs:"8rem", md: "6rem"}}
-          mb={{xs:"8rem", md: "5rem"}}
+          m={{ xs: 8, sm: 5, md: 8, lg: 10}}
         >
           <MuiIcon className={anL} />
           <ReduxIcon className={anL} />

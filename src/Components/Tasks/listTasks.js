@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from "react";
 import {
-  Card,
   Grid,
   CardContent,
-  Button,
+  MenuItem,
   Modal,
   Box,
   Typography,
   Container,
   CardHeader,
-  Alert,
   List,
+  Stack,
+  Avatar,
+  IconButton,
 } from "@mui/material";
-import { Search, Add, DeleteForever, Edit } from "@mui/icons-material";
+import { ButtonHome, DeleteButton } from "../customed";
+import { Search, DeleteForever, Edit, Cancel } from "@mui/icons-material";
 import moment from "moment";
 import CreateTask from "./createTask";
 import Task from "./task";
@@ -20,29 +22,56 @@ import "moment/locale/fr";
 import InputAdornment from "@material-ui/core/InputAdornment";
 import DeleteAll from "./deleteAllTasks";
 import { useDispatch, useSelector } from "react-redux";
-import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
+import { useAuth0 } from "@auth0/auth0-react";
 import {
   getAllTasks,
   deleteTask,
   findTaskByTitle,
+  findTasksByPerson,
 } from "../../store/actions/taskAction";
 import { getUser } from "../../store/actions/userAction";
-import { TextValidator, ValidatorForm } from "react-material-ui-form-validator";
-import { AUTH0_AUDIENCE } from "../../utils/config";
+import { getAllPersons } from "../../store/actions/personAction";
+import {
+  TextValidator,
+  SelectValidator,
+  ValidatorForm,
+} from "react-material-ui-form-validator";
+import CreatePerson from "../Persons/createPerson";
+import {
+  HomeAlert,
+  Subtitle,
+  SubtitleLine,
+  Title,
+  CardShad,
+} from "../customed";
 
 const ListTasks = () => {
   const [modalShow, setModalShow] = useState(false);
-  const todos = useSelector((state) => state.todos);
-  const User = useSelector((state) => state.user);
   const [currentTask, setCurrentTask] = useState({});
   const [title, setTitle] = useState("");
   const [typeModal, setTypeModal] = useState("");
+  const [responsible, setResponsible] = useState("");
   const dispatch = useDispatch();
   const { user, getAccessTokenSilently } = useAuth0();
+  const persons = useSelector((state) => state.persons);
+  const todos = useSelector((state) => state.todos);
+  const User = useSelector((state) => state.user);
+
+  const audience = process.env.REACT_APP_AUTH0_AUDIENCE;
 
   const onChange = (e) => {
     const title = e.target.value;
     setTitle(title);
+  };
+
+  const handleSelectChange = (event) => {
+    const responsible = event.target.value;
+    setResponsible(responsible);
+  };
+
+  const handleReset = () => {
+    setTitle("");
+    setResponsible("");
   };
 
   const handleOpenModal = (task, type) => {
@@ -57,7 +86,7 @@ const ListTasks = () => {
 
   useEffect(async () => {
     const token = await getAccessTokenSilently({
-      audience: AUTH0_AUDIENCE,
+      audience: audience,
       scope: "read:current_user",
     });
     dispatch(getUser({ user, token }))
@@ -69,23 +98,24 @@ const ListTasks = () => {
 
   useEffect(async () => {
     const token = await getAccessTokenSilently({
-      audience: AUTH0_AUDIENCE,
+      audience: audience,
     });
 
     dispatch(getAllTasks(token));
+    dispatch(getAllPersons(token));
   }, [getAccessTokenSilently, dispatch]);
 
   const getToken = async () => {
     token = await getAccessTokenSilently({
-      audience: AUTH0_AUDIENCE,
+      audience: audience,
     });
     return token;
   };
   let token = getToken();
 
-  const findTask = async () => {
+  const findTasks = async () => {
     const token = await getAccessTokenSilently({
-      audience: AUTH0_AUDIENCE,
+      audience: audience,
     });
     dispatch(findTaskByTitle({ title, token }))
       .then(() => {})
@@ -94,7 +124,19 @@ const ListTasks = () => {
       });
   };
 
-  const deleteT = ({ id, token }) => {
+  const findByPerson = async () => {
+    const token = await getAccessTokenSilently({
+      audience: audience,
+    });
+
+    dispatch(findTasksByPerson({ responsible, token }))
+      .then(() => {})
+      .catch((e) => {
+        console.log(e);
+      });
+  };
+
+  const deleteT = async ({ id, token }) => {
     dispatch(deleteTask({ id, token }))
       .then(() => {})
       .catch((e) => {
@@ -105,154 +147,167 @@ const ListTasks = () => {
   return (
     <>
       <Box mb={"10rem"}>
-        <Typography
-          m={4}
-          textAlign={"center"}
-          textTransform="uppercase"
-          variant="h5"
-        >
-          Liste de tâches
-        </Typography>
-
+        <Title>Liste de tâches</Title>
         <Container>
-          {/*
-            <ValidatorForm sx={{ float: "left" }} onSubmit={findTask}>
+          <Stack
+            direction={{ xs: "column", md: "row" }}
+            justifyContent={"center"}
+            alignItems={"center"}
+            spacing={{ xs: 2, md: 4 }}
+            mb={5}
+            mt={5}
+          >
+            <ValidatorForm onSubmit={findTasks}>
               <TextValidator
                 type="text"
+                size={"small"}
                 placeholder="Recherchez par titre..."
                 value={title}
+                name="title"
                 onChange={onChange}
+                validators={[
+                  "matchRegexp:^[a-zA-Z_0-9_' '_,.?@-é/èàêô]{0,45}$",
+                ]}
+                errorMessages={[
+                  "Caractères autorisés: Lettres, chiffres et '_,.?@-é/èàêô'",
+                ]}
                 InputProps={{
                   endAdornment: (
-                    <InputAdornment position="start">
-                      <Search />
+                    <InputAdornment>
+                      <Cancel onClick={handleReset} />
                     </InputAdornment>
                   ),
                 }}
               />
             </ValidatorForm>
-              */}
-          <Button
-            endIcon={<Add />}
-            sx={{
-              float: "right",
-              margin: "1rem",
-              backgroundColor: "gray",
-              color: "white",
-            }}
-            variant={"contained"}
-            onClick={() => handleOpenModal({}, "add")}
+            <ValidatorForm autoWidth onSubmit={findByPerson}>
+              <SelectValidator
+                label="Responsable"
+                type="text"
+                size={"small"}
+                name="responsible"
+                value={responsible}
+                onChange={handleSelectChange}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment>
+                      <Search onClick={() => findByPerson()} />
+                      <Cancel onClick={handleReset} />
+                    </InputAdornment>
+                  ),
+                }}
+                sx={{ minWidth: '15rem'}}
+              >
+                {persons &&
+                  persons.map((person) => (
+                    <MenuItem value={person._id} key={person}>{`${
+                      person.firstname + " " + person.lastname
+                    }`}</MenuItem>
+                  ))}
+              </SelectValidator>
+            </ValidatorForm>
+
+            <ButtonHome onClick={() => handleOpenModal({}, "add")}>
+              Ajouter une tâche
+            </ButtonHome>
+            <ButtonHome onClick={() => handleOpenModal({}, "addPerson")}>
+              Ajouter un responsable
+            </ButtonHome>
+
+            {todos && todos.length > 1 && (
+              <DeleteButton
+                endIcon={<DeleteForever />}
+                onClick={() => handleOpenModal({}, "delete")}
+              >
+                Tout supprimer
+              </DeleteButton>
+            )}
+          </Stack>
+          <Grid
+            container
+            mt={"3rem"}
+            justifyContent={"center"}
+            alignItems={"center"}
+            spacing={{ xs: 2, sm: 2, md: 4 }}
           >
-            Ajouter
-          </Button>
-
-          {todos && todos.length > 1 && (
-            <Button
-              endIcon={<DeleteForever />}
-              variant={"contained"}
-              sx={{
-                float: "right",
-                margin: "1rem",
-                backgroundColor: "lightGray",
-                color: "white",
-              }}
-              onClick={() => handleOpenModal({}, "delete")}
-            >
-              Tout supprimer
-            </Button>
-          )}
-
-          <Grid container spacing={4} mt={5}>
             {todos.length >= 1 ? (
               todos &&
-              todos.map((task) => (
-                <Grid item md={4}>
-                  <Card
-                    sx={{
-                      maxWidth: "24rem",
-                      border: "0.1px solid lightGray",
-                      boxShadow: "12px 8px 1px 1px rgba(0, 0, 255, .2)",
-                    }}
-                  >
+              todos.map((task, index) => (
+                <Grid key={index} item xs={12} sm={6} md={3.5}>
+                  <CardShad key={task}>
                     <CardHeader
-                      variant="h4"
+                      avatar={<Avatar sx={{}} aria-label="recipe"></Avatar>}
+                      sx={{ fontFamily: "monospace", fontSize: "1rem" }}
                       action={
-                        <Box
+                        <IconButton
+                          aria-label="settings"
                           sx={{
                             spacing: 1,
                             marginLeft: "2rem",
                             fontSize: "1.3rem",
+                            color: "#440099",
                           }}
                         >
-                          <Edit
-                            aria-label="settings"
-                            onClick={() => handleOpenModal(task, "edit")}
-                          />
+                          <Edit onClick={() => handleOpenModal(task, "edit")} />
                           <DeleteForever
-                            aria-label="settings"
-                            key={task.id}
                             onClick={() =>
                               deleteT({ id: task.id, token: token })
                             }
                           />
-                        </Box>
+                        </IconButton>
                       }
                       title={task.title}
                     />
 
                     <CardContent>
                       <List>
-                        <Typography
-                          sx={{
-                            justifyContent: "center",
-                            alignItems: "center",
-                          }}
-                          noWrap
-                          gutterBottom
-                        >
-                          {" "}
-                          <b>Description: </b>
-                          {task.description}
-                        </Typography>
-
-                        <Typography>
-                          <b>Statut: </b> {task.status}{" "}
-                        </Typography>
-
-                        <Typography>
-                          <b>Créée le: </b>
-                          {moment(task && task.created_at).format(
-                            "DD/MM/YYYY à HH:mm"
+                        <SubtitleLine>
+                          <Subtitle noWrap>Description: </Subtitle>
+                          <Typography>{task.description}</Typography>
+                        </SubtitleLine>
+                        <SubtitleLine>
+                          <Subtitle>Statut: </Subtitle>{" "}
+                          <Typography>{task.status}</Typography>
+                        </SubtitleLine>
+                        <SubtitleLine>
+                          <Subtitle>Responsable: </Subtitle>
+                          {persons &&
+                            persons
+                              .filter(
+                                (person) => person._id === task.responsible
+                              )
+                              .map((p) => (
+                                <Typography>{`${
+                                  p.firstname + " " + p.lastname
+                                }`}</Typography>
+                              ))}
+                          {!task.responsible && (
+                            <Typography>Non défini</Typography>
                           )}
-                        </Typography>
+                        </SubtitleLine>
+                        <SubtitleLine>
+                          <Subtitle>Créée le: </Subtitle>
+                          <Typography>
+                            {moment(task && task.created_at).format(
+                              "DD/MM/YYYY à HH:mm"
+                            )}
+                          </Typography>
+                        </SubtitleLine>
                       </List>
                     </CardContent>
-                  </Card>
+                  </CardShad>
                 </Grid>
               ))
             ) : (
-              <Box
-                ml={50}
-                sx={{
-                  display: "flex",
-                  alignContent: "center",
-                  justifyContent: "center",
-                }}
+              <Container
+                alignItems="center"
+                justifyContent="center"
+                sx={{ marginTop: "5rem" }}
               >
-                <Alert
-                  variant="outlined"
-                  severity="info"
-                  sx={{
-                    textAlign: "center",
-                    justifyContent: "center",
-                    fontSize: "1.3rem",
-                    border: "1px grey",
-                    color: "black",
-                  }}
-                >
+                <HomeAlert variant="outlined" severity="info">
                   Vous n'avez aucune tâche.
-                </Alert>
-              </Box>
+                </HomeAlert>
+              </Container>
             )}{" "}
           </Grid>
         </Container>
@@ -267,6 +322,8 @@ const ListTasks = () => {
           <Task onHide={handleCloseModal} task={currentTask} />
         ) : typeModal === "add" ? (
           <CreateTask onHide={handleCloseModal} />
+        ) : typeModal === "addPerson" ? (
+          <CreatePerson onHide={handleCloseModal} />
         ) : typeModal === "delete" ? (
           <DeleteAll onHide={handleCloseModal} />
         ) : (

@@ -42,7 +42,7 @@ export const deleteTask =
   ({ id, token }) =>
   async (dispatch) => {
     try {
-      const res = await taskService.remove({ id, token });
+      await taskService.remove({ id, token });
 
       dispatch({
         type: DELETE_TASK,
@@ -68,6 +68,21 @@ export const findTaskByTitle =
   async (dispatch) => {
     try {
       const res = await taskService.findByTitle({ title, token });
+
+      dispatch({
+        type: GET_ALL_TASKS,
+        payload: res.data,
+      });
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+export const findTasksByPerson =
+  ({ responsible, token }) =>
+  async (dispatch) => {
+    try {
+      const res = await taskService.findByPerson({ responsible, token });
 
       dispatch({
         type: GET_ALL_TASKS,

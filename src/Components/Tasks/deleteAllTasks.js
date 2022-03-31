@@ -1,21 +1,20 @@
 import React, { useState } from "react";
 import { deleteAllTasks } from "../../store/actions/taskAction";
-import { Button, Box, Typography, Alert } from "@mui/material";
+import { Button, Box, Typography } from "@mui/material";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Close } from "@mui/icons-material";
 import { useDispatch } from "react-redux";
-import { style } from "./createTask";
-import { AUTH0_AUDIENCE } from "../../utils/config";
+import { HomeAlert, Modal } from "../customed";
 
 const DeleteAll = (props) => {
   const dispatch = useDispatch();
   const { getAccessTokenSilently } = useAuth0();
   const [message, setMessage] = useState("");
   const [deleted, setDeleted] = useState(false);
- 
+
   const deleteA = async () => {
     const accessToken = await getAccessTokenSilently({
-      audience: AUTH0_AUDIENCE,
+      audience: process.env.REACT_APP_AUTH0_AUDIENCE,
     });
     dispatch(deleteAllTasks(accessToken))
       .then(() => {
@@ -28,7 +27,7 @@ const DeleteAll = (props) => {
   };
 
   return (
-    <Box sx={style}>
+    <Modal>
       {deleted && (
         <Box
           style={{
@@ -75,23 +74,13 @@ const DeleteAll = (props) => {
         </>
       )}
       {deleted && (
-        <Box >
-          <Alert
-           variant="outlined"
-            sx={{
-              textAlign: "center",
-              justifyContent: "center",
-              fontSize: "1.3rem",
-              border: "1px grey",
-              color: "black",
-            }}
-            severity="info"
-          >
+        <Box>
+          <HomeAlert variant="outlined" severity="info">
             {message}
-          </Alert>
+          </HomeAlert>
         </Box>
       )}
-    </Box>
+    </Modal>
   );
 };
 

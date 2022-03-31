@@ -7,41 +7,41 @@ const headers = (token) => ({
 });
 
 const getAll = (token) => {
-  return axios.get(`/todos-list`, headers(token));
-};
-
-const get = (id) => {
-  return axios.get(`/get-todo/${id}`);
+  return axios.get(`/task/list`, headers(token));
 };
 
 const create = ({ formData, token }) => {
-  return axios.post("/add-todo", formData, headers(token));
+  return axios.post("/task/add", formData, headers(token));
 };
 
 const update = ({ id, data, token }) => {
-  return axios.put(`/update-todo/${id}`, data, headers(token));
+  return axios.put(`/task/update/${id}`, data, headers(token));
 };
 
 const remove = ({ id, token }) => {
-  return axios.delete(`/delete-todo/${id}`, headers(token));
+  return axios.delete(`/task/delete/${id}`, headers(token));
 };
 
 const removeAll = (token) => {
-  return axios.delete(`/delete-todos`, headers(token));
+  return axios.delete(`/task/delete`, headers(token));
 };
 
 const findByTitle = ({ title, token }) => {
-  return axios.get(`/todos-list?title=${title}`, headers(token));
+  return axios.get(`/task/list?title=${title}`, headers(token));
+};
+
+const findByPerson = ({ responsible, token }) => {
+  return axios.get(`/task/list?responsible=${responsible}`, headers(token));
 };
 
 const taskService = {
   getAll,
-  get,
   create,
   update,
   remove,
   removeAll,
   findByTitle,
+  findByPerson
 };
 
 export default taskService;

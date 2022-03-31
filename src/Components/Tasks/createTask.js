@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import {
   Typography,
-  Button,
-  Box,
   AlertTitle,
   Alert,
   MenuItem,
@@ -16,46 +14,50 @@ import {
 } from "react-material-ui-form-validator";
 import { createTask } from "../../store/actions/taskAction";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { AUTH0_AUDIENCE } from "../../utils/config";
-
-export const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  width: 450,
-  bgcolor: "background.paper",
-  boxShadow: 24,
-  p: 3,
- 
-  
-};
+import { getAllPersons } from "../../store/actions/personAction";
+import { SubmitButton, Modal, BoxReverse } from "../customed";
 
 const CreateTask = (props) => {
+  const options = ["Nouvelle", "En cours"];
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const audience = AUTH0_AUDIENCE;
+  const audience = process.env.AUTH0_AUDIENCE;
   const { getAccessTokenSilently } = useAuth0();
   const user = useSelector((state) => state.user);
-  
+  const persons = useSelector((state) => state.persons);
+  const message = useSelector((state) => state.message);
+
   const initialState = {
     title: "",
     description: "",
     status: "",
     created_at: new Date(),
-    token: "",
+    responsible: "",
+    user: "",
   };
   const [task, setTask] = useState(initialState);
   const [submitted, setSubmitted] = useState(false);
+  const [modalShow, setModalShow] = useState(false);
+  const [typeModal, setTypeModal] = useState("");
+
+  useEffect(async () => {
+    document.title = "Todo App";
+    const token = await getAccessTokenSilently({
+      audience: audience,
+    });
+    dispatch(getAllPersons(token));
+  }, [getAccessTokenSilently, dispatch]);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setTask({ ...task, [name]: value });
   };
 
-  const handleSelectChange = (event) => {
+  const handleSelectStatusChange = (event) => {
     setTask({ ...task, status: event.target.value });
+  };
+
+  const handleSelectResponsibleChange = (event) => {
+    setTask({ ...task, responsible: event.target.value });
   };
 
 
@@ -71,12 +73,12 @@ const CreateTask = (props) => {
       description: task.description,
       status: task.status,
       created_at: task.created_at,
+      responsible: task.responsible,
       user: user.user_id,
     };
     dispatch(createTask({ formData, token }))
       .then(() => {
         setSubmitted(true);
-        navigate("/all");
       })
       .catch((e) => {
         console.log(e);
@@ -85,7 +87,7 @@ const CreateTask = (props) => {
 
   return (
     <>
-      <Box sx={style}>
+      <Modal>
         <Close onClick={props.onHide} />
         <Typography
           mb={2}
@@ -99,14 +101,12 @@ const CreateTask = (props) => {
 
         <ValidatorForm
           onSubmit={saveTask}
-          sx={{ margin: "5rem" }}
+          m={"5rem"}
           id="transition-modal-description"
           padded="very"
-          raised
           justifyContent={"center"}
           alignContent={"center"}
           alignItems={"center"}
-          stackable="true"
         >
           {submitted && (
             <div
@@ -125,7 +125,6 @@ const CreateTask = (props) => {
 
           <div>
             <TextValidator
-              fluid
               margin="dense"
               label="Titre"
               name="title"
@@ -146,7 +145,6 @@ const CreateTask = (props) => {
               required
             />
             <TextValidator
-              fluid
               margin="dense"
               label="Description"
               name="description"
@@ -179,33 +177,43 @@ const CreateTask = (props) => {
               errorMessages={["Veuillez choisir un statut svp."]}
               fullWidth
               value={task.status}
-              onChange={handleSelectChange}
+              onChange={handleSelectStatusChange}
             >
-              <MenuItem selected value="Nouvelle">
-                Nouvelle
-              </MenuItem>
-              <MenuItem value="En cours">En cours</MenuItem>
+              {options &&
+                options.map((option) => (
+                  <MenuItem key={option} value={option}>{`${option}`}</MenuItem>
+                ))}
             </SelectValidator>
-            <Box
-              style={{
-                marginTop: "1rem",
-                display: "flex",
-                flexDirection: "row-reverse",
-              }}
+            <SelectValidator
+              margin="dense"
+              type="text"
+              name="responsible"
+              aria-expanded="false"
+              label="Responsable"
+              fullWidth
+              value={task.responsible}
+              onChange={handleSelectResponsibleChange}
             >
-              <Button
-                fontSize={{ xs: 10, sm: 8 }}
-                sx={{ float: "right", backgroundColor: "#8a73fb" }}
+              {persons &&
+                persons.map((person) => (
+                  <MenuItem
+                    key={person.id}
+                    value={person}
+                  >{`${person.firstname} ${person.lastname}`}</MenuItem>
+                ))}
+            </SelectValidator>
+            <BoxReverse>
+              <SubmitButton
                 variant="contained"
                 type="submit"
                 endIcon={<Send />}
               >
                 Ajouter
-              </Button>
-            </Box>
+              </SubmitButton>
+            </BoxReverse>
           </div>
         </ValidatorForm>
-      </Box>
+      </Modal>
     </>
   );
 };

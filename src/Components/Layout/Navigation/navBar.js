@@ -8,37 +8,26 @@ import {
   Tooltip,
   IconButton,
   Menu,
-  Avatar,
-  Stack
+  Avatar
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import SignUpButton from "../../Buttons/signupButton";
 import LoginButton from "../../Buttons/loginButton";
 import LogoutButton from "../../Buttons/logoutButton";
 import { useSelector } from "react-redux";
 import { useAuth0 } from "@auth0/auth0-react";
-import { HashLink as Link } from "react-router-hash-link";
-import useStyles from "../../styles";
+import { HashLink } from "react-router-hash-link";
+
+import { Navlink, NavSmallLink } from "../../customed";
 import "animate.css";
 
 const Navbar = () => {
-
   const { isAuthenticated } = useAuth0();
-  const classes = useStyles();
   const user = useSelector((state) => state.user);
 
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
 
-  const handleOpenNavMenu = (event) => {
-    setAnchorElNav(event.currentTarget);
-  };
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
-  };
-
-  const handleCloseNavMenu = () => {
-    setAnchorElNav(null);
   };
 
   const handleCloseUserMenu = () => {
@@ -48,33 +37,28 @@ const Navbar = () => {
   return (
     <AppBar sx={{ backgroundColor: "#8a73fb" }} position="static">
       <Toolbar>
-        <Typography ml={5} variant="h5" component="div" >
-          <Link to="/" className={classes.navlink}>
-            Accueil
-          </Link>
-        </Typography>
+        <HashLink to="/">
+          <Navlink>Accueil</Navlink>
+        </HashLink>
+
         {isAuthenticated && (
-        <Typography
-          ml={2}
-          variant="h5"
-          component="div"
-        
-        >
-          <Link to="/all" className={classes.navlink}>
-            Liste des tâches
-          </Link>
-        </Typography>
+          <HashLink to="/list">
+            <Navlink>Liste des tâches</Navlink>
+          </HashLink>
         )}
         {!isAuthenticated ? (
-          <Box sx={{  flexGrow:1, display: "flex",
-          flexDirection: "row-reverse"}}>
-          <LoginButton  /></Box>
+          <Box
+            sx={{ flexGrow: 1, display: "flex", flexDirection: "row-reverse" }}
+          >
+            <LoginButton />
+          </Box>
         ) : (
-          <Box sx={{  flexGrow:1,   display: "flex",
-          flexDirection: "row-reverse"}}>
-            <Box >
+          <Box
+            sx={{ flexGrow: 1, display: "flex", flexDirection: "row-reverse" }}
+          >
+            <Box>
               <Tooltip title="Mon compte">
-                <IconButton onClick={handleOpenUserMenu} sx={{ p: 0 }}>
+                <IconButton onClick={handleOpenUserMenu}>
                   <Avatar src={user.picture} alt={user.name} />
                 </IconButton>
               </Tooltip>
@@ -96,16 +80,15 @@ const Navbar = () => {
               >
                 <MenuItem textAlign="center" onClick={handleCloseUserMenu}>
                   <Typography
-                       
                     component="div"
                     sx={{
-                     fontSize:'1.1rem',
+                      fontSize: "1.1rem",
                       display: { xs: "block", sm: "block" },
                     }}
                   >
-                    <Link  sx={{textDecoration:"none"}} justifyContent="center" to="/profile">
-                      Mon compte
-                    </Link>
+                    <HashLink to="/profile">
+                      <NavSmallLink>Mon compte</NavSmallLink>
+                    </HashLink>
                   </Typography>
                 </MenuItem>
                 <MenuItem onClick={handleCloseUserMenu}>
